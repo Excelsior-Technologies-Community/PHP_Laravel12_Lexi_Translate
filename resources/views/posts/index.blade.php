@@ -143,7 +143,13 @@
                         GUJARATI
                     </a>
 
-                    <a href="{{ route('posts.create') }}" class="btn btn-light btn-add">
+                    <a href="{{ route('posts.export.excel') }}"
+                        class="btn btn-info btn-add">
+                        📊 Export Excel
+                    </a>
+
+                    <a href="{{ route('posts.create') }}"
+                        class="btn btn-light btn-add">
                         + Add Post
                     </a>
 
@@ -152,37 +158,51 @@
             </div>
         </div>
 
-        <!-- Stats -->
+
+        <!-- Analytics Dashboard -->
         <div class="row mb-4">
 
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
                 <div class="card stat-card">
                     <div class="card-body">
                         <h6 class="text-muted">Total Posts</h6>
-                        <h2 class="fw-bold">
-                            {{ $posts->total() }}
-                        </h2>
+                        <h2 class="fw-bold">{{ $totalPosts }}</h2>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
                 <div class="card stat-card">
                     <div class="card-body">
-                        <h6 class="text-muted">Languages</h6>
-                        <h2 class="fw-bold">3</h2>
-                        <small>English • Hindi • Gujarati</small>
+                        <h6 class="text-muted">English</h6>
+                        <h2 class="fw-bold text-primary">
+                            {{ $englishCount }}
+                        </h2>
+                        <small>Translated Posts</small>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
                 <div class="card stat-card">
                     <div class="card-body">
-                        <h6 class="text-muted">Current Locale</h6>
-                        <h2 class="fw-bold">
-                            {{ strtoupper(app()->getLocale()) }}
+                        <h6 class="text-muted">Hindi</h6>
+                        <h2 class="fw-bold text-warning">
+                            {{ $hindiCount }}
                         </h2>
+                        <small>Translated Posts</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Gujarati</h6>
+                        <h2 class="fw-bold text-success">
+                            {{ $gujaratiCount }}
+                        </h2>
+                        <small>Translated Posts</small>
                     </div>
                 </div>
             </div>
@@ -224,7 +244,8 @@
                                 <th>Slug</th>
                                 <th>Title</th>
                                 <th>Description</th>
-                                <th width="180">Action</th>
+                                <th>Status</th>
+                                <th width="250">Action</th>
                             </tr>
 
                         </thead>
@@ -233,57 +254,75 @@
 
                             @forelse($posts as $post)
 
-                                <tr>
+                            <tr>
 
-                                    <td>
-                                        <strong>#{{ $post->id }}</strong>
-                                    </td>
+                                <td>
+                                    <strong>#{{ $post->id }}</strong>
+                                </td>
 
-                                    <td>
-                                        <span class="badge bg-secondary">
-                                            {{ $post->slug }}
-                                        </span>
-                                    </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ $post->slug }}
+                                    </span>
+                                </td>
 
-                                    <td>
-                                        {{ $post->transAttr('title') }}
-                                    </td>
+                                <td>
+                                    {{ $post->transAttr('title') }}
+                                </td>
 
-                                    <td>
-                                        {{ Str::limit($post->transAttr('description'), 50) }}
-                                    </td>
+                                <td>
+                                    {{ Str::limit($post->transAttr('description'), 50) }}
+                                </td>
 
-                                    <td>
+                                <td>
 
-                                        <a href="{{ route('posts.edit', $post->id) }}"
-                                            class="btn btn-warning btn-sm action-btn">
-                                            Edit
-                                        </a>
+                                    @if($post->translationStatus() == 'Complete')
 
-                                        <form action="{{ route('posts.destroy', $post->id) }}" method="POST"
-                                            class="d-inline">
+                                    <span class="badge bg-success">
+                                        Complete
+                                    </span>
 
-                                            @csrf
-                                            @method('DELETE')
+                                    @else
 
-                                            <button type="submit" class="btn btn-danger btn-sm action-btn"
-                                                onclick="return confirm('Delete this post?')">
-                                                Delete
-                                            </button>
+                                    <span class="badge bg-danger">
+                                        {{ $post->translationStatus() }}
+                                    </span>
 
-                                        </form>
+                                    @endif
 
-                                    </td>
+                                </td>
 
-                                </tr>
+                                <td>
+
+                                    <a href="{{ route('posts.edit', $post->id) }}"
+                                        class="btn btn-warning btn-sm action-btn">
+                                        Edit
+                                    </a>
+
+                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST"
+                                        class="d-inline">
+
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit" class="btn btn-danger btn-sm action-btn"
+                                            onclick="return confirm('Delete this post?')">
+                                            Delete
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
 
                             @empty
 
-                                <tr>
-                                    <td colspan="5" class="text-center py-4">
-                                        No Posts Found
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    No Posts Found
+                                </td>
+                            </tr>
 
                             @endforelse
 
@@ -297,27 +336,27 @@
 
                     @if($posts->lastPage() > 1)
 
-                        <nav>
+                    <nav>
 
-                            <ul class="pagination">
+                        <ul class="pagination">
 
-                                @for($i = 1; $i <= $posts->lastPage(); $i++)
+                            @for($i = 1; $i <= $posts->lastPage(); $i++)
 
-                                    <li class="page-item {{ $posts->currentPage() == $i ? 'active' : '' }}">
+                                <li class="page-item {{ $posts->currentPage() == $i ? 'active' : '' }}">
 
-                                        <a class="page-link" href="{{ $posts->url($i) }}">
+                                    <a class="page-link" href="{{ $posts->url($i) }}">
 
-                                            {{ $i }}
+                                        {{ $i }}
 
-                                        </a>
+                                    </a>
 
-                                    </li>
+                                </li>
 
                                 @endfor
 
-                            </ul>
+                        </ul>
 
-                        </nav>
+                    </nav>
 
                     @endif
 
