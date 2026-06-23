@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use App\Exports\PostsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PostController extends Controller
 {
@@ -22,15 +24,33 @@ class PostController extends Controller
                 ->orWhereHas('translations', function ($query) use ($search) {
 
                     $query->where('text', 'like', "%{$search}%");
-
                 });
         }
 
         $posts = $posts->oldest()->paginate(4);
 
-        return view('posts.index', compact('posts'));
-    }
+        $totalPosts = Post::count();
 
+        $englishCount = Post::all()
+            ->filter(fn($post) => !empty($post->transAttr('title', 'en')))
+            ->count();
+
+        $hindiCount = Post::all()
+            ->filter(fn($post) => !empty($post->transAttr('title', 'hi')))
+            ->count();
+
+        $gujaratiCount = Post::all()
+            ->filter(fn($post) => !empty($post->transAttr('title', 'gu')))
+            ->count();
+
+        return view('posts.index', compact(
+            'posts',
+            'totalPosts',
+            'englishCount',
+            'hindiCount',
+            'gujaratiCount'
+        ));
+    }
     /**
      * Show crea1te form.
      */
@@ -137,5 +157,13 @@ class PostController extends Controller
         return redirect()
             ->route('posts.index')
             ->with('success', 'Post Deleted Successfully');
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(
+            new PostsExport,
+            'multilingual-posts.xlsx'
+        );
     }
 }

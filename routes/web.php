@@ -16,3 +16,5 @@ Route::get('/lang/{locale}', function ($locale) {
     return redirect()->route('posts.index');
 
 })->name('lang.switch');
+
+Route::get('/posts-export-excel', [PostController::class, 'exportExcel'])->name('posts.export.excel');

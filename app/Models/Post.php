@@ -17,4 +17,29 @@ class Post extends Model
         'title',
         'description'
     ];
+
+    public function translationStatus()
+    {
+        $missing = [];
+
+        $en = trim($this->transAttr('title', 'en') ?? '');
+        $hi = trim($this->transAttr('title', 'hi') ?? '');
+        $gu = trim($this->transAttr('title', 'gu') ?? '');
+
+        if (!$en) {
+            $missing[] = 'English';
+        }
+
+        if (!$hi) {
+            $missing[] = 'Hindi';
+        }
+
+        if (!$gu) {
+            $missing[] = 'Gujarati';
+        }
+
+        return empty($missing)
+            ? 'Complete'
+            : 'Missing: ' . implode(', ', $missing);
+    }
 }
